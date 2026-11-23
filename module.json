@@ -1,8 +1,8 @@
 {
-  "id": "glitching-items",
-  "title": "Glitching Items",
+  "id": "sf2e-glitching-items",
+  "title": "SF2e Glitching Items",
   "description": "Rolls the SF2e glitching flat check (DC 5 + N) automatically whenever an item with a Glitching 1-3 trait is used, and adds those traits.",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "compatibility": {
     "minimum": "12",
     "verified": "14"
@@ -25,7 +25,7 @@
     "scripts/glitching-items.js"
   ],
   "flags": {
-    "glitching-items": {
+    "sf2e-glitching-items": {
       "pf2e-homebrew": {
         "weaponTraits": {
           "glitching-1": {
@@ -60,7 +60,7 @@
   },
   "url": "https://github.com/alocay/sf2e-glitching-items",
   "manifest": "https://github.com/alocay/sf2e-glitching-items/releases/latest/download/module.json",
-  "download": "https://github.com/alocay/sf2e-glitching-items/releases/download/v1.6.1/module.zip",
+  "download": "https://github.com/alocay/sf2e-glitching-items/releases/download/v1.7.0/module.zip",
   "bugs": "https://github.com/alocay/sf2e-glitching-items/issues",
   "readme": "https://github.com/alocay/sf2e-glitching-items/blob/main/README.md",
   "changelog": "https://github.com/alocay/sf2e-glitching-items/blob/main/CHANGELOG.md",

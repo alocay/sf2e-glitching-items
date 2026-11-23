@@ -1,6 +1,7 @@
 # Changelog
 
-## 1.6.1
+## 1.7.0
+- Module ID changed to `sf2e-glitching-items`. Uninstall the old Glitching Items module before installing this one. Existing glitching items keep working.
 - Removed the automatic conversion of items tagged by name in older versions. Give those items the Glitching trait by hand.
 - Damage rolls never trigger a check. The Strike or Area Fire card already counts as the use.
 - The flat check card no longer describes splitting a stack.

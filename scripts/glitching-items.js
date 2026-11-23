@@ -4,7 +4,7 @@
 // When the item posts a chat card, a DC (5 + N) flat check is rolled in chat.
 // On a critical success the item's glitching value drops by 1 (trait removed at 0).
 
-const MODULE_ID = "glitching-items";
+const MODULE_ID = "sf2e-glitching-items";
 const DEBOUNCE_MS = 4000;          // duplicate item/activation cards within this window count once
 const recent = new Map();
 
