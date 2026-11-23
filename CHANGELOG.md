@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.0
+- Traits are now the only way to mark an item as glitching. A number in the name no longer counts as a tag.
+- The name shows the value: "Battery (Glitching 2)" instead of "Battery (Glitching)", so Glitching 1 and Glitching 2 stacks are easy to tell apart.
+- Items tagged by name in older versions are converted to the matching trait when the GM loads the world, or when they're created (e.g. dragged in from a compendium).
+
 ## 1.5.0
 - Critical success on a stack of reusable items splits the used one off into its own stack with the lower glitching value. The rest of the stack keeps its glitch.
 - Consumables (grenades) are left unchanged on a critical success, since the one that rolled is used up.

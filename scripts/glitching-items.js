@@ -1,12 +1,11 @@
-// Glitching Items — Foundry VTT v12/v13
-// Tag an item either way:
-//   - a homebrew trait "Glitching N" (slug glitching-N), added under
-//     System Settings > Homebrew Elements (Weapon Traits and/or Equipment Traits), or
-//   - "Glitching N" anywhere in its name, e.g. "Commercial Frag Grenade (Glitching 1)"
-// When that item posts a chat card, a DC (5 + N) flat check is rolled in chat.
-// On a critical success the item's glitching value drops by 1 (tag removed at 0).
+// Glitching Items — Foundry VTT v12–v14, SF2e
+// Mark an item with the Glitching 1/2/3 trait (registered by this module in module.json).
+// The item's name shows the value automatically, e.g. "Battery (Glitching 2)".
+// When the item posts a chat card, a DC (5 + N) flat check is rolled in chat.
+// On a critical success the item's glitching value drops by 1 (trait removed at 0).
 
 const MODULE_ID = "glitching-items";
+// "Glitching N" in a name: only used to convert items tagged by name in versions before 1.6
 const TAG = /\(?\s*glitching[\s-]*(\d+)\s*\)?/i;
 const DEBOUNCE_MS = 4000;          // duplicate item/activation cards within this window count once
 const DAMAGE_WINDOW_MS = 120000;   // a damage roll within 2 min of a check belongs to that use
@@ -14,16 +13,15 @@ const recent = new Map();
 
 const TRAIT = /^glitching-(\d+)$/;
 
-// Returns { n, source: "trait" | "name" } or null. A trait wins over a name tag.
+// Returns { n, trait } from the item's Glitching N trait, or null.
 function glitchInfo(item) {
   if (!item) return null;
   const traits = item.system?.traits?.value ?? [];
   for (const t of traits) {
     const m = String(t).match(TRAIT);
-    if (m) return { n: Number(m[1]), source: "trait", trait: t };
+    if (m) return { n: Number(m[1]), trait: t };
   }
-  const m = item.name?.match(TAG);
-  return m ? { n: Number(m[1]), source: "name" } : null;
+  return null;
 }
 
 // Is "glitching-N" a trait the system knows about (i.e. created in Homebrew Elements)?
@@ -128,7 +126,7 @@ Hooks.on("createChatMessage", async (message) => {
     } else {
       const data = { name: item.name, system: { traits: { value: [...(item.system.traits?.value ?? [])] } } };
       lowerGlitch(data, info, n);
-      await item.update(info.source === "trait" ? { "system.traits.value": data.system.traits.value } : { name: data.name });
+      await item.update({ "system.traits.value": data.system.traits.value });
     }
   } catch (err) {
     console.error(`${MODULE_ID} | couldn't lower the glitching value`, err);
@@ -142,41 +140,54 @@ function isConsumable(item) {
   return traits.includes("consumable") || traits.includes("grenade");
 }
 
-/** Lower the glitching value by 1 on item source data (trait or name tag). */
+/** Lower the glitching value by 1 on item source data. The name follows via the hooks below. */
 function lowerGlitch(data, info, n) {
-  if (info.source === "trait") {
-    const lower = `glitching-${n - 1}`;
-    const traits = (data.system.traits?.value ?? []).filter((t) => t !== info.trait);
-    if (n > 1 && traitExists(lower)) traits.push(lower);
-    data.system.traits ??= {};
-    data.system.traits.value = traits;
-  } else {
-    data.name = n > 1
-      ? data.name.replace(TAG, (m) => m.replace(/\d+/, String(n - 1)))
-      : data.name.replace(TAG, "").replace(/\s{2,}/g, " ").trim();
+  const lower = `glitching-${n - 1}`;
+  const traits = (data.system.traits?.value ?? []).filter((t) => t !== info.trait);
+  if (n > 1 && traitExists(lower)) traits.push(lower);
+  data.system.traits ??= {};
+  data.system.traits.value = traits;
+  // Rename now too, so a split-off copy's old "(Glitching N)" isn't read as a pre-1.6 name tag
+  if (data.name !== undefined) data.name = syncedName(data.name, traits);
+}
+
+// ---------------------------------------------------------------------------
+// Keep " (Glitching N)" at the end of the name of any item with a Glitching N trait.
+// The trait is the source of truth; the name just shows it.
+// ---------------------------------------------------------------------------
+const SUFFIX_RE = /\s*\(\s*glitching(?:[\s-]*\d+)?\s*\)\s*$/i;
+
+function glitchLevel(traits) {
+  if (!Array.isArray(traits)) return 0;
+  for (const t of traits) {
+    const m = String(t).match(TRAIT);
+    if (m) return Number(m[1]);
   }
+  return 0;
 }
 
-// ---------------------------------------------------------------------------
-// Keep " (Glitching)" in the name of any item that has a Glitching N trait.
-// The number lives on the trait only; the suffix is added/removed automatically.
-// ---------------------------------------------------------------------------
-const SUFFIX = " (Glitching)";
-const SUFFIX_RE = /\s*\(glitching\)\s*$/i;
-
-function hasGlitchTrait(traits) {
-  return Array.isArray(traits) && traits.some((t) => TRAIT.test(String(t)));
-}
-
-function syncedName(name, glitching) {
+function syncedName(name, traits) {
   const base = String(name ?? "").replace(SUFFIX_RE, "");
-  return glitching ? base + SUFFIX : base;
+  const n = glitchLevel(traits);
+  return n ? `${base} (Glitching ${n})` : base;
 }
 
-Hooks.on("preCreateItem", (item, data) => {
-  const traits = item._source.system?.traits?.value;
-  if (!hasGlitchTrait(traits) && !SUFFIX_RE.test(item.name)) return;
-  const name = syncedName(item.name, hasGlitchTrait(traits));
+/** Items tagged by name before 1.6 ("... (Glitching 2)", no trait): the trait to give them. */
+function traitFromOldName(name, traits) {
+  if (glitchLevel(traits)) return null;
+  const m = String(name ?? "").match(TAG);
+  const slug = m ? `glitching-${Number(m[1])}` : null;
+  return slug && traitExists(slug) ? slug : null;
+}
+
+Hooks.on("preCreateItem", (item) => {
+  let traits = item._source.system?.traits?.value;
+  const converted = traitFromOldName(item.name, traits);
+  if (converted) {
+    traits = [...(traits ?? []), converted];
+    item.updateSource({ "system.traits.value": traits });
+  }
+  const name = syncedName(item.name, traits);
   if (name !== item.name) item.updateSource({ name });
 });
 
@@ -186,24 +197,29 @@ Hooks.on("preUpdateItem", (item, changes) => {
     changes["system.traits.value"] ??
     item.system?.traits?.value;
   const currentName = changes.name ?? item.name;
-  const name = syncedName(currentName, hasGlitchTrait(traits));
+  const name = syncedName(currentName, traits);
   if (name !== currentName) changes.name = name;
 });
 
-// One-time pass when the GM loads the world: fix names of items that already
-// had a Glitching trait before this version (world items and actor inventories).
+// When the GM loads the world: convert old name-tagged items to traits, and bring every
+// glitching item's name in line with its trait (world items and actor inventories).
 Hooks.once("ready", async () => {
   if (!game.user.isGM) return;
-  const needsFix = (i) => syncedName(i.name, hasGlitchTrait(i.system?.traits?.value)) !== i.name;
+  const fix = (i) => {
+    let traits = i.system?.traits?.value ?? [];
+    const converted = traitFromOldName(i.name, traits);
+    if (converted) traits = [...traits, converted];
+    const name = syncedName(i.name, traits);
+    if (!converted && name === i.name) return null;
+    return converted ? { _id: i.id, name, "system.traits.value": traits } : { _id: i.id, name };
+  };
 
-  const worldItems = game.items.filter(needsFix);
-  for (const i of worldItems) await i.update({ name: syncedName(i.name, hasGlitchTrait(i.system?.traits?.value)) });
-
+  for (const i of game.items) {
+    const u = fix(i);
+    if (u) await i.update(u);
+  }
   for (const actor of game.actors) {
-    const updates = actor.items.filter(needsFix).map((i) => ({
-      _id: i.id,
-      name: syncedName(i.name, hasGlitchTrait(i.system?.traits?.value))
-    }));
+    const updates = actor.items.map(fix).filter(Boolean);
     if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
   }
 });

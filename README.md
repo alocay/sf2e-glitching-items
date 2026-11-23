@@ -1,6 +1,6 @@
 # Glitching Items
 
-Automates the Starfinder 2e **glitching** condition on equipment. Tag an item as glitching, and each time it's used the module rolls the DC (5 + glitching value) flat check in chat.
+Automates the Starfinder 2e **glitching** condition on equipment. Give an item a Glitching trait, and each time it's used the module rolls the DC (5 + glitching value) flat check in chat.
 
 **Requires:** Foundry VTT v12–v14 and the SF2e system.
 
@@ -16,12 +16,11 @@ https://github.com/alocay/sf2e-glitching-items/releases/latest/download/module.j
 
 ### 1. Tag the item
 
-Use either method:
+Add the **Glitching 1**, **Glitching 2** or **Glitching 3** trait to the item. The module adds these traits to the weapon and equipment trait lists. Consumables and armor get them too.
 
-- **Trait (recommended):** add **Glitching 1**, **Glitching 2** or **Glitching 3** to the item's traits. The module adds these traits to the weapon and equipment trait lists. Consumables and armor get them too.
-- **Name:** put "Glitching N" in the item's name, e.g. `Frag Grenade (Glitching 1)`.
+The item's name shows the value automatically, e.g. `Battery (Glitching 2)`, and updates when the trait changes or is removed.
 
-With a trait, " (Glitching)" is added to the item's name automatically, and removed when the trait is removed.
+Items tagged by name in versions before 1.6 (e.g. `Frag Grenade (Glitching 1)` with no trait) are converted to the matching trait when the GM loads the world.
 
 ### 2. Use the item
 
