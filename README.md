@@ -20,8 +20,6 @@ Add the **Glitching 1**, **Glitching 2** or **Glitching 3** trait to the item. T
 
 The item's name shows the value automatically, e.g. `Battery (Glitching 2)`, and updates when the trait changes or is removed.
 
-Items tagged by name in versions before 1.6 (e.g. `Frag Grenade (Glitching 1)` with no trait) are converted to the matching trait when the GM loads the world.
-
 ### 2. Use the item
 
 When the item posts a chat card (a Strike, Area Fire, an activation), the module rolls the flat check and posts the result:
