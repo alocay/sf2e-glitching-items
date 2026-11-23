@@ -18,7 +18,7 @@ https://github.com/alocay/sf2e-glitching-items/releases/latest/download/module.j
 
 Add the **Glitching 1**, **Glitching 2** or **Glitching 3** trait to the item. The module adds these traits to the weapon and equipment trait lists. Consumables and armor get them too.
 
-![A frag grenade with the Glitching 1 trait](images/glitched-item.png)
+![A frag grenade with the Glitching 1 trait](images/gltiched_item.png)
 
 The item's name shows the value automatically, e.g. `Battery (Glitching 2)`, and updates when the trait changes or is removed.
 
