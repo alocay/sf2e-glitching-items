@@ -44,7 +44,11 @@ Penalties aren't applied automatically. Apply them from the chat result.
 
 ### Critical success
 
-The glitching value drops by 1: Glitching 2 becomes Glitching 1, and Glitching 1 is removed. This only happens when the item's quantity is 1, so a lucky roll doesn't fix a whole stack.
+The glitching value drops by 1: Glitching 2 becomes Glitching 1, and Glitching 1 is removed. The flat check card says what changed.
+
+- **Single item:** the item itself is lowered.
+- **Stack of reusable items:** the used one is split off into its own stack with the lower value. The rest stay glitching.
+- **Consumables (grenades):** nothing changes. The one that rolled is used up.
 
 ### Limitations
 

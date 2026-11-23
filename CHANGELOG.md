@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.0
+- Critical success on a stack of reusable items splits the used one off into its own stack with the lower glitching value. The rest of the stack keeps its glitch.
+- Consumables (grenades) are left unchanged on a critical success, since the one that rolled is used up.
+- The flat check card says what happened to the item.
+- Removed PF2e from the supported systems. SF2e only.
+
 ## 1.4.1
 - Marked as verified for Foundry v14.
 

@@ -92,31 +92,70 @@ Hooks.on("createChatMessage", async (message) => {
   const deg = degreeOf(die, dc);
   const o = OUTCOME[deg];
 
+  // Critical success: work out what happens to the item before posting, so the card can say so.
+  const qty = item.system?.quantity ?? 1;
+  const usedUp = isConsumable(item);
+  const lowerText = n > 1 ? `Glitching ${n - 1}` : "no longer glitching";
+  let note = "";
+  if (deg === 3 && item.isOwner) {
+    if (usedUp) note = qty > 1 ? "This one was used up. The rest of the stack is still glitching." : "";
+    else if (qty > 1) {
+      const rest = qty - 1;
+      note = `Split off 1 into its own stack (${lowerText}). The other ${rest} ${rest === 1 ? "is" : "are"} still Glitching ${n}.`;
+    } else note = n > 1 ? `Lowered to ${lowerText}.` : "No longer glitching.";
+  }
+
   await roll.toMessage({
     speaker: message.speaker,
     flavor: `<strong>Glitching ${n}</strong> flat check — ${foundry.utils.escapeHTML(item.name)} (DC ${dc})
       <div style="color:${o.color};font-weight:bold;margin-top:4px">${o.label}</div>
-      <div>${o.text.replaceAll("{n}", n)}</div>`,
+      <div>${o.text.replaceAll("{n}", n)}</div>${note ? `<div style="margin-top:4px"><em>${note}</em></div>` : ""}`,
     flags: { [MODULE_ID]: { check: true } }
   });
 
-  // Critical success: reduce the tag on the item
-  // (skipped for stacks, so one lucky grenade doesn't fix the whole stack)
-  const qty = item.system?.quantity ?? 1;
-  if (deg === 3 && item.isOwner && qty <= 1) {
-    if (info.source === "trait") {
-      const lower = `glitching-${n - 1}`;
-      const traits = item.system.traits.value.filter((t) => t !== info.trait);
-      if (n > 1 && traitExists(lower)) traits.push(lower);
-      await item.update({ "system.traits.value": traits });
+  // Consumables (grenades etc.) are used up, so there's nothing left to fix.
+  if (deg !== 3 || !item.isOwner || usedUp) return;
+
+  try {
+    if (qty > 1) {
+      // Split the lucky one off: the stack keeps its glitch, the new single item gets the lower value.
+      const data = item.toObject();
+      delete data._id;
+      data.system.quantity = 1;
+      lowerGlitch(data, info, n);
+      await item.update({ "system.quantity": qty - 1 });
+      await Item.implementation.create(data, { parent: item.actor ?? null });
     } else {
-      const newName = n > 1
-        ? item.name.replace(TAG, (m) => m.replace(/\d+/, String(n - 1)))
-        : item.name.replace(TAG, "").replace(/\s{2,}/g, " ").trim();
-      await item.update({ name: newName });
+      const data = { name: item.name, system: { traits: { value: [...(item.system.traits?.value ?? [])] } } };
+      lowerGlitch(data, info, n);
+      await item.update(info.source === "trait" ? { "system.traits.value": data.system.traits.value } : { name: data.name });
     }
+  } catch (err) {
+    console.error(`${MODULE_ID} | couldn't lower the glitching value`, err);
   }
 });
+
+/** Grenades and other one-shot items: the one that rolled is gone after use. */
+function isConsumable(item) {
+  if (item.isOfType?.("consumable")) return true;
+  const traits = item.system?.traits?.value ?? [];
+  return traits.includes("consumable") || traits.includes("grenade");
+}
+
+/** Lower the glitching value by 1 on item source data (trait or name tag). */
+function lowerGlitch(data, info, n) {
+  if (info.source === "trait") {
+    const lower = `glitching-${n - 1}`;
+    const traits = (data.system.traits?.value ?? []).filter((t) => t !== info.trait);
+    if (n > 1 && traitExists(lower)) traits.push(lower);
+    data.system.traits ??= {};
+    data.system.traits.value = traits;
+  } else {
+    data.name = n > 1
+      ? data.name.replace(TAG, (m) => m.replace(/\d+/, String(n - 1)))
+      : data.name.replace(TAG, "").replace(/\s{2,}/g, " ").trim();
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Keep " (Glitching)" in the name of any item that has a Glitching N trait.
