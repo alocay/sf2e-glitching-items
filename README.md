@@ -2,7 +2,7 @@
 
 Automates the Starfinder 2e **glitching** condition on equipment. Tag an item as glitching, and each time it's used the module rolls the DC (5 + glitching value) flat check in chat.
 
-**Requires:** Foundry VTT v12–v14 and the SF2e system (PF2e also works).
+**Requires:** Foundry VTT v12–v14 and the SF2e system.
 
 ## Install
 
