@@ -5,10 +5,7 @@
 // On a critical success the item's glitching value drops by 1 (trait removed at 0).
 
 const MODULE_ID = "glitching-items";
-// "Glitching N" in a name: only used to convert items tagged by name in versions before 1.6
-const TAG = /\(?\s*glitching[\s-]*(\d+)\s*\)?/i;
 const DEBOUNCE_MS = 4000;          // duplicate item/activation cards within this window count once
-const DAMAGE_WINDOW_MS = 120000;   // a damage roll within 2 min of a check belongs to that use
 const recent = new Map();
 
 const TRAIT = /^glitching-(\d+)$/;
@@ -60,28 +57,22 @@ Hooks.on("createChatMessage", async (message) => {
   const info = glitchInfo(item);
   if (!info?.n) return;
 
-  // Ignore reactions to the item by other creatures: a target's save against the
-  // grenade, damage applied to a target, etc. Only the item's holder "uses" it.
+  // Not a use of the item: damage rolls (part of the Strike/Area Fire already checked),
+  // a target's save against it, damage applied to a target, flat checks.
+  // Only the item's holder "uses" it.
   const ctxType = message.flags?.[game.system.id]?.context?.type;
-  if (["saving-throw", "damage-taken", "flat-check"].includes(ctxType)) return;
+  if (["damage-roll", "saving-throw", "damage-taken", "flat-check"].includes(ctxType)) return;
   if (item.actor && message.actor && message.actor.id !== item.actor.id) return;
   const n = info.n;
 
   // Decide whether this card is a new "use" of the item:
   //  - attack rolls: every Strike is a use, always check (MAP attacks back to back)
-  //  - damage rolls: usually follow an attack/Area Fire already checked, so skip
-  //    if this item was checked recently; otherwise treat as the use
-  //  - anything else (item card, Area Fire, activation): short debounce
+  //  - anything else (Area Fire, item card, activation): short debounce so
+  //    duplicate cards from one use count once
   const key = item.uuid;
   const now = Date.now();
   const last = recent.get(key) ?? 0;
-  if (ctxType === "attack-roll") {
-    // always a new use
-  } else if (ctxType === "damage-roll") {
-    if (now - last < DAMAGE_WINDOW_MS) return;
-  } else if (now - last < DEBOUNCE_MS) {
-    return;
-  }
+  if (ctxType !== "attack-roll" && now - last < DEBOUNCE_MS) return;
   recent.set(key, now);
 
   const dc = 5 + n;
@@ -97,10 +88,7 @@ Hooks.on("createChatMessage", async (message) => {
   let note = "";
   if (deg === 3 && item.isOwner) {
     if (usedUp) note = qty > 1 ? "This one was used up. The rest of the stack is still glitching." : "";
-    else if (qty > 1) {
-      const rest = qty - 1;
-      note = `Split off 1 into its own stack (${lowerText}). The other ${rest} ${rest === 1 ? "is" : "are"} still Glitching ${n}.`;
-    } else note = n > 1 ? `Lowered to ${lowerText}.` : "No longer glitching.";
+    else if (qty === 1) note = n > 1 ? `Lowered to ${lowerText}.` : "No longer glitching.";
   }
 
   await roll.toMessage({
@@ -147,7 +135,7 @@ function lowerGlitch(data, info, n) {
   if (n > 1 && traitExists(lower)) traits.push(lower);
   data.system.traits ??= {};
   data.system.traits.value = traits;
-  // Rename now too, so a split-off copy's old "(Glitching N)" isn't read as a pre-1.6 name tag
+  // Rename the source data too, so a split-off copy is created with the right name
   if (data.name !== undefined) data.name = syncedName(data.name, traits);
 }
 
@@ -172,22 +160,8 @@ function syncedName(name, traits) {
   return n ? `${base} (Glitching ${n})` : base;
 }
 
-/** Items tagged by name before 1.6 ("... (Glitching 2)", no trait): the trait to give them. */
-function traitFromOldName(name, traits) {
-  if (glitchLevel(traits)) return null;
-  const m = String(name ?? "").match(TAG);
-  const slug = m ? `glitching-${Number(m[1])}` : null;
-  return slug && traitExists(slug) ? slug : null;
-}
-
 Hooks.on("preCreateItem", (item) => {
-  let traits = item._source.system?.traits?.value;
-  const converted = traitFromOldName(item.name, traits);
-  if (converted) {
-    traits = [...(traits ?? []), converted];
-    item.updateSource({ "system.traits.value": traits });
-  }
-  const name = syncedName(item.name, traits);
+  const name = syncedName(item.name, item._source.system?.traits?.value);
   if (name !== item.name) item.updateSource({ name });
 });
 
@@ -199,27 +173,4 @@ Hooks.on("preUpdateItem", (item, changes) => {
   const currentName = changes.name ?? item.name;
   const name = syncedName(currentName, traits);
   if (name !== currentName) changes.name = name;
-});
-
-// When the GM loads the world: convert old name-tagged items to traits, and bring every
-// glitching item's name in line with its trait (world items and actor inventories).
-Hooks.once("ready", async () => {
-  if (!game.user.isGM) return;
-  const fix = (i) => {
-    let traits = i.system?.traits?.value ?? [];
-    const converted = traitFromOldName(i.name, traits);
-    if (converted) traits = [...traits, converted];
-    const name = syncedName(i.name, traits);
-    if (!converted && name === i.name) return null;
-    return converted ? { _id: i.id, name, "system.traits.value": traits } : { _id: i.id, name };
-  };
-
-  for (const i of game.items) {
-    const u = fix(i);
-    if (u) await i.update(u);
-  }
-  for (const actor of game.actors) {
-    const updates = actor.items.map(fix).filter(Boolean);
-    if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
-  }
 });

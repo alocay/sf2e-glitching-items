@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.1
+- Removed the automatic conversion of items tagged by name in older versions. Give those items the Glitching trait by hand.
+- Damage rolls never trigger a check. The Strike or Area Fire card already counts as the use.
+- The flat check card no longer describes splitting a stack.
+
 ## 1.6.0
 - Traits are now the only way to mark an item as glitching. A number in the name no longer counts as a tag.
 - The name shows the value: "Battery (Glitching 2)" instead of "Battery (Glitching)", so Glitching 1 and Glitching 2 stacks are easy to tell apart.

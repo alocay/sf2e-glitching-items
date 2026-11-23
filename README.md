@@ -36,12 +36,12 @@ Penalties aren't applied automatically. Apply them from the chat result.
 ### What counts as a use
 
 - Every attack roll gets a check.
-- A damage roll right after a check is part of that use and doesn't get its own.
+- Damage rolls never get a check. They're part of the Strike or Area Fire that already got one.
 - Saves against the item, damage taken by targets, and cards posted by other creatures are ignored.
 
 ### Critical success
 
-The glitching value drops by 1: Glitching 2 becomes Glitching 1, and Glitching 1 is removed. The flat check card says what changed.
+The glitching value drops by 1: Glitching 2 becomes Glitching 1, and Glitching 1 is removed.
 
 - **Single item:** the item itself is lowered.
 - **Stack of reusable items:** the used one is split off into its own stack with the lower value. The rest stay glitching.
