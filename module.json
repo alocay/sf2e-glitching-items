@@ -1,0 +1,72 @@
+{
+  "id": "glitching-items",
+  "title": "Glitching Items",
+  "description": "Rolls the SF2e glitching flat check (DC 5 + N) automatically whenever a glitching item is used, and adds Glitching 1-3 item traits.",
+  "version": "1.4.1",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "14"
+  },
+  "authors": [
+    {
+      "name": "alocay",
+      "url": "https://github.com/alocay"
+    }
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "sf2e",
+        "type": "system"
+      },
+      {
+        "id": "pf2e",
+        "type": "system"
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/glitching-items.js"
+  ],
+  "flags": {
+    "glitching-items": {
+      "pf2e-homebrew": {
+        "weaponTraits": {
+          "glitching-1": {
+            "label": "Glitching 1",
+            "description": "<p>This item has the glitching 1 condition. Each time it's used, attempt a DC 6 flat check. Critical success: glitching value drops by 1. Success: works normally. Failure: item penalty of 1 to checks and DCs for this use. Critical failure: the item doesn't function and the actions are lost.</p>"
+          },
+          "glitching-2": {
+            "label": "Glitching 2",
+            "description": "<p>This item has the glitching 2 condition. Each time it's used, attempt a DC 7 flat check. Critical success: glitching value drops by 1. Success: works normally. Failure: item penalty of 2 to checks and DCs for this use. Critical failure: the item doesn't function and the actions are lost.</p>"
+          },
+          "glitching-3": {
+            "label": "Glitching 3",
+            "description": "<p>This item has the glitching 3 condition. Each time it's used, attempt a DC 8 flat check. Critical success: glitching value drops by 1. Success: works normally. Failure: item penalty of 3 to checks and DCs for this use. Critical failure: the item doesn't function and the actions are lost.</p>"
+          }
+        },
+        "equipmentTraits": {
+          "glitching-1": {
+            "label": "Glitching 1",
+            "description": "<p>This item has the glitching 1 condition. Each time it's used, attempt a DC 6 flat check. Critical success: glitching value drops by 1. Success: works normally. Failure: item penalty of 1 to checks and DCs for this use. Critical failure: the item doesn't function and the actions are lost.</p>"
+          },
+          "glitching-2": {
+            "label": "Glitching 2",
+            "description": "<p>This item has the glitching 2 condition. Each time it's used, attempt a DC 7 flat check. Critical success: glitching value drops by 1. Success: works normally. Failure: item penalty of 2 to checks and DCs for this use. Critical failure: the item doesn't function and the actions are lost.</p>"
+          },
+          "glitching-3": {
+            "label": "Glitching 3",
+            "description": "<p>This item has the glitching 3 condition. Each time it's used, attempt a DC 8 flat check. Critical success: glitching value drops by 1. Success: works normally. Failure: item penalty of 3 to checks and DCs for this use. Critical failure: the item doesn't function and the actions are lost.</p>"
+          }
+        }
+      }
+    }
+  },
+  "url": "https://github.com/alocay/sf2e-glitching-items",
+  "manifest": "https://github.com/alocay/sf2e-glitching-items/releases/latest/download/module.json",
+  "download": "https://github.com/alocay/sf2e-glitching-items/releases/download/v1.4.1/module.zip",
+  "bugs": "https://github.com/alocay/sf2e-glitching-items/issues",
+  "readme": "https://github.com/alocay/sf2e-glitching-items/blob/main/README.md",
+  "changelog": "https://github.com/alocay/sf2e-glitching-items/blob/main/CHANGELOG.md",
+  "license": "LICENSE"
+}
