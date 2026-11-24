@@ -48,7 +48,6 @@ The glitching value drops by 1: Glitching 2 becomes Glitching 1, and Glitching 1
 
 - **Single item:** the item itself is lowered.
 - **Stack of reusable items:** the used one is split off into its own stack with the lower value. The rest stay glitching.
-- **Consumables (grenades):** nothing changes. The one that rolled is used up.
 
 ### Limitations
 
