@@ -39,6 +39,8 @@ The result is applied to the item's card:
 - **Critical failure:** the item's save, damage, healing and check buttons on the card are hidden from players. The GM still sees them, outlined, in case they want to override the result.
 - **Critical failure on a consumable:** it's used up. The check card says "X has been consumed.", and the GM gets a **Restore** button to put it back. A consumable the system already used up (e.g. a Medpatch) isn't taken twice.
 
+![A critical failure on a frag grenade, with the Restore button](images/crit_failure_restore.png)
+
 Restore works any time while the check card is in chat. It adds 1 back to the stack, or recreates the item if it was the last one.
 
 A Strike's attack is already rolled when the check happens, so apply its penalty however your group sees fit.
@@ -46,6 +48,8 @@ A Strike's attack is already rolled when the check happens, so apply its penalty
 ### Roll Glitch Check button
 
 When an item's check is posted to chat (e.g. a glitching keypad lock's `DC 20 Computers`), it isn't a use, so nothing rolls by itself. The card gets a **Roll Glitch Check** button instead. Anyone can click it, once per card. The result is applied to that card the same way: a failure lowers the DC, a critical failure hides the check from players, and a critical success lowers the item's glitching value.
+
+![A keypad lock's check in chat, with the Roll Glitch Check button](images/item_use_roll_glitch_button.png)
 
 ### What counts as a use
 
