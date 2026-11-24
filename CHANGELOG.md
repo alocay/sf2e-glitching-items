@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.8.0
+- A failed check lowers the DCs on the item's card by the glitching value: the Area Fire or Auto-Fire save DC, and the item's check links.
+- A critical failure hides the item's save, damage, healing and check buttons on its card from players. The GM still sees them.
+- A consumable that critically fails is used up. The check card says "X has been consumed." and the GM gets a Restore button that works as long as the card is in chat. A consumable the system already used up (a Medpatch) isn't taken twice.
+- New "Roll Glitch Check" button on an item's check posted to chat (e.g. a glitching lock's DC).
+- New settings: "Apply glitch results to cards" and "Consume on crit failures". Both on by default.
+- Glitching 4 and Glitching 5 traits.
+- A consumable used up by its own use (the last Medpatch in a stack) now gets its check.
+- Posting an item to chat to show its description no longer triggers a check.
+- Shorter check card text: a critical failure reads "The item failed to function.", and the failure line no longer has an example.
+
 ## 1.7.0
 - Module ID changed to `sf2e-glitching-items`. Uninstall the old Glitching Items module before installing this one. Existing glitching items keep working.
 - Removed the automatic conversion of items tagged by name in older versions. Give those items the Glitching trait by hand.

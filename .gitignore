@@ -9,3 +9,6 @@ desktop.ini
 .vscode/
 .idea/
 node_modules/
+
+# Design docs and plans (local only)
+docs/
