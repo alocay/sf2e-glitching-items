@@ -33,7 +33,8 @@ When the item posts a chat card (a Strike, Area Fire, an activation), the module
 | Failure | Item penalty equal to the glitching value on checks and DCs for this use. |
 | Critical failure | The item doesn't function, and the actions are lost. |
 
-Penalties aren't applied automatically. Apply them from the chat result.
+The roll result is only displayed and penalties aren't applied automatically. 
+Apply them based on the result however your group sees fit.
 
 ### What counts as a use
 
