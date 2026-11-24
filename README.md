@@ -20,7 +20,7 @@ Add the **Glitching 1**, **Glitching 2** or **Glitching 3** trait to the item. T
 
 ![A frag grenade with the Glitching 1 trait](images/gltiched_item.png)
 
-The item's name shows the value automatically, e.g. `Battery (Glitching 2)`, and updates when the trait changes or is removed.
+The item's name shows the value automatically, e.g. `Laser Rifle (Commercial) (Glitching 2)`, and updates when the trait changes or is removed.
 
 ### 2. Use the item
 
