@@ -1,0 +1,101 @@
+# Publish a GitHub release to the Foundry VTT package listing.
+#
+# Run the Release workflow first. Then: Actions tab -> Publish to Foundry -> Run workflow.
+# It uses the latest GitHub release (or the version you type in), reads the id and
+# compatibility from that release's module.json, and sends it to the Foundry Package
+# Release API (https://foundryvtt.com/article/package-release-api/).
+#
+# Needs the repository secret FOUNDRY_RELEASE_TOKEN: the "Package Release Token" from
+# the package's edit page on foundryvtt.com.
+#
+# Tick "Dry run" to have Foundry check the request without publishing anything.
+name: Publish to Foundry
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish, e.g. 1.8.0. Leave blank for the latest GitHub release."
+        required: false
+        default: ""
+      dry_run:
+        description: "Dry run (Foundry checks the request, nothing is published)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find the release
+        id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [ -n "$INPUT_VERSION" ]; then
+            TAG="v${INPUT_VERSION#v}"
+          else
+            TAG="$(gh release view --repo "$REPO" --json tagName -q .tagName)"
+          fi
+          gh release download "$TAG" --repo "$REPO" --pattern module.json --dir release \
+            || { echo "::error::No module.json on GitHub release $TAG. Run the Release workflow first."; exit 1; }
+          VERSION="${TAG#v}"
+          MANIFEST_VERSION="$(jq -r .version release/module.json)"
+          if [ "$MANIFEST_VERSION" != "$VERSION" ]; then
+            echo "::error::Release $TAG has module.json version $MANIFEST_VERSION."
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build the request
+        env:
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.v.outputs.tag }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          BASE="https://github.com/${REPO}/releases"
+          # The manifest must point at this exact release, not releases/latest.
+          # compatibility: minimum and verified are required; maximum only if module.json sets one.
+          jq --arg version "$VERSION" \
+             --arg manifest "$BASE/download/$TAG/module.json" \
+             --arg notes "$BASE/tag/$TAG" '
+            {
+              id: .id,
+              release: {
+                version: $version,
+                manifest: $manifest,
+                notes: $notes,
+                compatibility: (.compatibility | with_entries(select(.value != null and .value != "") | .value |= tostring))
+              }
+            }' release/module.json > request.json
+          cat request.json
+
+      - name: Send to Foundry
+        env:
+          FOUNDRY_RELEASE_TOKEN: ${{ secrets.FOUNDRY_RELEASE_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          [ -n "$FOUNDRY_RELEASE_TOKEN" ] || { echo "::error::Add the FOUNDRY_RELEASE_TOKEN repository secret."; exit 1; }
+          if [ "$DRY_RUN" = "true" ]; then
+            jq '. + {"dry-run": true}' request.json > body.json
+          else
+            cp request.json body.json
+          fi
+          STATUS=$(curl -sS -o response.json -w '%{http_code}' -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: $FOUNDRY_RELEASE_TOKEN" \
+            --data @body.json https://foundryvtt.com/_api/packages/release_version/)
+          cat response.json; echo
+          [ "$STATUS" = "200" ] || { echo "::error::Foundry returned HTTP $STATUS (see the response above)."; exit 1; }
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "Dry run of $VERSION passed. Nothing was published."
+          else
+            echo "Published $VERSION to Foundry."
+          fi
